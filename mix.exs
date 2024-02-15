@@ -27,17 +27,18 @@ defmodule Jason.Mixfile do
   end
 
   defp deps() do
-    [
-      {:decimal, "~> 1.0 or ~> 2.0", optional: true},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:jason_native, ">= 0.0.0", optional: true}
-    ] ++ maybe_stream_data()
+    ([
+       {:decimal, "~> 1.0 or ~> 2.0", optional: true},
+       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+       {:jason_native, ">= 0.0.0", optional: true}
+     ] ++ maybe_stream_data())
+    |> dbg()
   end
 
   defp maybe_stream_data() do
     if Version.match?(System.version(), "~> 1.5") do
-      [{:stream_data, "~> 0.4", only: :test}]
+      [{:stream_data, "~> 0.4", only: [:dev, :test]}]
     else
       []
     end

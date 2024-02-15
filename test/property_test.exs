@@ -42,9 +42,11 @@ if Code.ensure_loaded?(ExUnitProperties) do
     property "unicode escaping" do
       check all string <- string(:printable) do
         encoded = encode(string, escape: :unicode)
-        for << <<byte>> <- encoded >> do
+
+        for <<(<<byte>> <- encoded)>> do
           assert byte < 128
         end
+
         assert decode(encoded) == string
       end
     end
@@ -73,6 +75,7 @@ if Code.ensure_loaded?(ExUnitProperties) do
 
     defp json(keys) do
       simple = one_of([integer(), float(), string(:printable), boolean(), nil])
+
       tree(simple, fn json ->
         one_of([list_of(json), map_of(keys, json)])
       end)

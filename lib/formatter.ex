@@ -123,6 +123,7 @@ defmodule Jason.Formatter do
 
   defp parse_opts([{option, value} | opts], indent, line, record, colon) do
     value = IO.iodata_to_binary(value)
+
     case option do
       :indent -> parse_opts(opts, value, line, record, colon)
       :record_separator -> parse_opts(opts, indent, line, value, colon)
@@ -163,11 +164,11 @@ defmodule Jason.Formatter do
     cont.(tail, output_acc)
   end
 
-  defp pp_byte(byte, rest, output, depth, empty, opts) when byte in ' \n\r\t' do
+  defp pp_byte(byte, rest, output, depth, empty, opts) when byte in ~c" \n\r\t" do
     pp_iodata(rest, output, depth, empty, opts)
   end
 
-  defp pp_byte(byte, rest, output, depth, empty, opts) when byte in '{[' do
+  defp pp_byte(byte, rest, output, depth, empty, opts) when byte in ~c"{[" do
     {out, depth} =
       cond do
         depth == :first -> {byte, 1}
@@ -180,25 +181,25 @@ defmodule Jason.Formatter do
     pp_iodata(rest, [output, out], depth, empty, opts)
   end
 
-  defp pp_byte(byte, rest, output, depth, true = _empty, opts) when byte in '}]' do
+  defp pp_byte(byte, rest, output, depth, true = _empty, opts) when byte in ~c"}]" do
     empty = false
     depth = depth - 1
     pp_iodata(rest, [output, byte], depth, empty, opts)
   end
 
-  defp pp_byte(byte, rest, output, depth, false = empty, opts) when byte in '}]' do
+  defp pp_byte(byte, rest, output, depth, false = empty, opts) when byte in ~c"}]" do
     depth = depth - 1
     out = [opts(opts, :line), tab(opts(opts, :indent), depth), byte]
     pp_iodata(rest, [output, out], depth, empty, opts)
   end
 
-  defp pp_byte(byte, rest, output, depth, _empty, opts) when byte in ',' do
+  defp pp_byte(byte, rest, output, depth, _empty, opts) when byte in ~c"," do
     empty = false
     out = [byte, opts(opts, :line), tab(opts(opts, :indent), depth)]
     pp_iodata(rest, [output, out], depth, empty, opts)
   end
 
-  defp pp_byte(byte, rest, output, depth, empty, opts) when byte in ':' do
+  defp pp_byte(byte, rest, output, depth, empty, opts) when byte in ~c":" do
     out = [byte, opts(opts, :colon)]
     pp_iodata(rest, [output, out], depth, empty, opts)
   end
@@ -227,8 +228,10 @@ defmodule Jason.Formatter do
     case :binary.match(binary, ["\"", "\\"]) do
       :nomatch ->
         {[output_acc | binary], &pp_string(&1, &2, false, cont)}
+
       {pos, 1} ->
         {head, tail} = :erlang.split_binary(binary, pos + 1)
+
         case :binary.at(binary, pos) do
           ?\\ -> pp_string(tail, [output_acc | head], true, cont)
           ?" -> cont.(tail, [output_acc | head])
