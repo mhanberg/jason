@@ -33,7 +33,6 @@ defmodule Jason.Mixfile do
        {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
        {:jason_native, ">= 0.0.0", optional: true}
      ] ++ maybe_stream_data())
-    |> dbg()
   end
 
   defp maybe_stream_data() do
