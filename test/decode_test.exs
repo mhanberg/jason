@@ -4,14 +4,14 @@ defmodule Jason.DecodeTest do
   alias Jason.DecodeError
 
   test "numbers" do
-    assert_fail_with "-", ~S|unexpected end of input at position 1|
-    assert_fail_with "--1", ~S|unexpected byte at position 1: 0x2D ("-")|
-    assert_fail_with "01", ~S|unexpected byte at position 1: 0x31 ("1")|
-    assert_fail_with ".1", ~S|unexpected byte at position 0: 0x2E (".")|
-    assert_fail_with "1.", ~S|unexpected end of input at position 2|
-    assert_fail_with "1e", ~S|unexpected end of input at position 2|
-    assert_fail_with "1.0e+", ~S|unexpected end of input at position 5|
-    assert_fail_with "1e999", ~S|unexpected sequence at position 0: "1e999"|
+    assert_fail_with("-", ~S|unexpected end of input at position 1|)
+    assert_fail_with("--1", ~S|unexpected byte at position 1: 0x2D ("-")|)
+    assert_fail_with("01", ~S|unexpected byte at position 1: 0x31 ("1")|)
+    assert_fail_with(".1", ~S|unexpected byte at position 0: 0x2E (".")|)
+    assert_fail_with("1.", ~S|unexpected end of input at position 2|)
+    assert_fail_with("1e", ~S|unexpected end of input at position 2|)
+    assert_fail_with("1.0e+", ~S|unexpected end of input at position 5|)
+    assert_fail_with("1e999", ~S|unexpected sequence at position 0: "1e999"|)
 
     assert parse!("0") == 0
     assert parse!("1") == 1
@@ -30,22 +30,32 @@ defmodule Jason.DecodeTest do
     assert parse!("0.1e-1") == 0.1e-1
     assert parse!("99.99e99") == 99.99e99
     assert parse!("-99.99e-99") == -99.99e-99
-    assert parse!("123456789.123456789e123") == 123456789.123456789e123
+    assert parse!("123456789.123456789e123") == 123_456_789.123456789e123
   end
 
   test "strings" do
-    assert_fail_with ~s("), ~S|unexpected end of input at position 1|
-    assert_fail_with ~s("\\"), ~S|unexpected end of input at position 3|
-    assert_fail_with ~s("\\k"), ~S|unexpected byte at position 2: 0x6B ("k")|
-    assert_fail_with ~s("a\r"), ~S|unexpected byte at position 2: 0xD ("\r")|
-    assert_fail_with <<?\", 128, ?\">>, ~S|unexpected byte at position 1: 0x80|
-    assert_fail_with ~s("\\u2603\\"), ~S|unexpected end of input at position 9|
-    assert_fail_with ~s("Here's a snowman for you: ☃. Good day!), ~S|unexpected end of input at position 41|
-    assert_fail_with ~s("𝄞), ~S|unexpected end of input at position 5|
-    assert_fail_with ~s(\u001F), ~S|unexpected byte at position 0: 0x1F|
-    assert_fail_with ~s("\\ud8aa\\udcxx"), ~S|unexpected sequence at position 7: "\\udcxx"|
-    assert_fail_with ~s("\\ud8aa\\uda00"), ~S|unexpected sequence at position 1: "\\ud8aa\\uda00"|
-    assert_fail_with ~s("\\uxxxx"), ~S|unexpected sequence at position 1: "\\uxxxx"|
+    assert_fail_with(~s("), ~S|unexpected end of input at position 1|)
+    assert_fail_with(~s("\\"), ~S|unexpected end of input at position 3|)
+    assert_fail_with(~s("\\k"), ~S|unexpected byte at position 2: 0x6B ("k")|)
+    assert_fail_with(~s("a\r"), ~S|unexpected byte at position 2: 0xD ("\r")|)
+    assert_fail_with(<<?\", 128, ?\">>, ~S|unexpected byte at position 1: 0x80|)
+    assert_fail_with(~s("\\u2603\\"), ~S|unexpected end of input at position 9|)
+
+    assert_fail_with(
+      ~s("Here's a snowman for you: ☃. Good day!),
+      ~S|unexpected end of input at position 41|
+    )
+
+    assert_fail_with(~s("𝄞), ~S|unexpected end of input at position 5|)
+    assert_fail_with(~s(\u001F), ~S|unexpected byte at position 0: 0x1F|)
+    assert_fail_with(~s("\\ud8aa\\udcxx"), ~S|unexpected sequence at position 7: "\\udcxx"|)
+
+    assert_fail_with(
+      ~s("\\ud8aa\\uda00"),
+      ~S|unexpected sequence at position 1: "\\ud8aa\\uda00"|
+    )
+
+    assert_fail_with(~s("\\uxxxx"), ~S|unexpected sequence at position 1: "\\uxxxx"|)
 
     assert parse!(~s("\\"\\\\\\/\\b\\f\\n\\r\\t")) == ~s("\\/\b\f\n\r\t)
     assert parse!(~s("\\u2603")) == "☃"
@@ -57,10 +67,10 @@ defmodule Jason.DecodeTest do
   end
 
   test "objects" do
-    assert_fail_with "{", ~S|unexpected end of input at position 1|
-    assert_fail_with "{,", ~S|unexpected byte at position 1: 0x2C (",")|
-    assert_fail_with ~s({"foo"}), ~S|unexpected byte at position 6: 0x7D ("}")|
-    assert_fail_with ~s({"foo": "bar",}), ~S|unexpected byte at position 14: 0x7D ("}")|
+    assert_fail_with("{", ~S|unexpected end of input at position 1|)
+    assert_fail_with("{,", ~S|unexpected byte at position 1: 0x2C (",")|)
+    assert_fail_with(~s({"foo"}), ~S|unexpected byte at position 6: 0x7D ("}")|)
+    assert_fail_with(~s({"foo": "bar",}), ~S|unexpected byte at position 14: 0x7D ("}")|)
 
     assert parse!("{}") == %{}
     assert parse!(~s({"foo": "bar"})) == %{"foo" => "bar"}
@@ -79,10 +89,12 @@ defmodule Jason.DecodeTest do
     assert parse!(~s({"foo": "bar"}), keys: :atoms) == %{foo: "bar"}
     assert parse!(~s({"foo": "bar"}), keys: :atoms!) == %{foo: "bar"}
 
-    key = Integer.to_string(System.unique_integer)
+    key = Integer.to_string(System.unique_integer())
+
     assert_raise ArgumentError, fn ->
       parse!(~s({"#{key}": "value"}), keys: :atoms!)
     end
+
     key = String.to_atom(key)
     assert parse!(~s({"#{key}": "value"}), keys: :atoms) == %{key => "value"}
   end
@@ -125,8 +137,8 @@ defmodule Jason.DecodeTest do
     assert parse!(~s({"foo": {"bar": "baz"}}), objects: :ordered_objects) == expected
 
     # Combining with `keys: :atoms`
-    assert parse!(~s({"foo": "bar"}), keys: :atoms, objects: :ordered_objects) == new([foo: "bar"])
-    assert parse!(~s({"foo": "bar"}), keys: :atoms!, objects: :ordered_objects) == new([foo: "bar"])
+    assert parse!(~s({"foo": "bar"}), keys: :atoms, objects: :ordered_objects) == new(foo: "bar")
+    assert parse!(~s({"foo": "bar"}), keys: :atoms!, objects: :ordered_objects) == new(foo: "bar")
   end
 
   test "parsing floats to decimals" do
@@ -142,9 +154,9 @@ defmodule Jason.DecodeTest do
   end
 
   test "arrays" do
-    assert_fail_with "[", ~S|unexpected end of input at position 1|
-    assert_fail_with "[,", ~S|unexpected byte at position 1: 0x2C (",")|
-    assert_fail_with "[1,]", ~S|unexpected byte at position 3: 0x5D ("]")|
+    assert_fail_with("[", ~S|unexpected end of input at position 1|)
+    assert_fail_with("[,", ~S|unexpected byte at position 1: 0x2C (",")|)
+    assert_fail_with("[1,]", ~S|unexpected byte at position 3: 0x5D ("]")|)
 
     assert parse!("[]") == []
     assert parse!("[1, 2, 3]") == [1, 2, 3]
@@ -153,8 +165,8 @@ defmodule Jason.DecodeTest do
   end
 
   test "whitespace" do
-    assert_fail_with "", ~S|unexpected end of input at position 0|
-    assert_fail_with "    ", ~S|unexpected end of input at position 4|
+    assert_fail_with("", ~S|unexpected end of input at position 0|)
+    assert_fail_with("    ", ~S|unexpected end of input at position 4|)
 
     assert parse!("  [  ]  ") == []
     assert parse!("  {  }  ") == %{}
@@ -173,7 +185,11 @@ defmodule Jason.DecodeTest do
 
   test "large integers" do
     massive_integer = String.duplicate("1", 2_000)
-    assert_fail_with(massive_integer, "unexpected sequence at position 0: #{inspect massive_integer}")
+
+    assert_fail_with(
+      massive_integer,
+      "unexpected sequence at position 0: #{inspect(massive_integer)}"
+    )
   end
 
   defp parse!(json, opts \\ []) do

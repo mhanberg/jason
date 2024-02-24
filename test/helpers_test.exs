@@ -8,9 +8,7 @@ defmodule Jason.HelpersTest do
 
   describe "json_map/2" do
     test "does not delay execution" do
-      %Fragment{} = json_map(
-        foo: Process.put(:json, :bar)
-      )
+      %Fragment{} = json_map(foo: Process.put(:json, :bar))
 
       assert Process.get(:json) == :bar
     end
@@ -21,17 +19,17 @@ defmodule Jason.HelpersTest do
     end
 
     test "rejects keys with invalid characters" do
-      assert_eval_raise EncodeError, """
+      assert_eval_raise(EncodeError, """
       json_map("/foo": 1)
-      """
+      """)
 
-      assert_eval_raise EncodeError, ~S"""
+      assert_eval_raise(EncodeError, ~S"""
       json_map("\\foo": 1)
-      """
+      """)
 
-      assert_eval_raise EncodeError, ~S"""
+      assert_eval_raise(EncodeError, ~S"""
       json_map("\"foo": 1)
-      """
+      """)
     end
   end
 
